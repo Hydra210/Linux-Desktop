@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div class="wrap">
+
+  <header class="greeting">
+    <img id="pfp" class="pfp" src="icons/pfp.png" alt="profile picture">
+    <div class="greeting-text">
+      <h1 id="welcome">Welcome back, Patrick</h1>
+      <p id="splash" class="splash">loading splash text...</p>
+    </div>
+  </header>
+
+  <section class="info-row">
+
+    <div class="panel">
+      <div class="panel-label">local time</div>
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="date" id="date">loading date</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label" id="wxLocation">weather</div>
+      <div class="wx-temp" id="wxTemp">--°</div>
+      <div class="wx-desc" id="wxDesc">fetching...</div>
+      <div class="wx-sub" id="wxSub"></div>
+    </div>
+
+  </section>
+
+  <section class="panel roblox-panel" id="robloxPanel">
+    <div class="panel-label">roblox profile</div>
+    <div class="roblox-body">
+      <img id="robloxAvatar" class="roblox-avatar" src="" alt="roblox avatar">
+      <div class="roblox-info">
+        <div class="roblox-name" id="robloxDisplayName">loading...</div>
+        <div class="roblox-username" id="robloxUsername"></div>
+        <div class="roblox-bio" id="robloxBio"></div>
+        <div class="roblox-stats">
+          <div class="stat"><span class="stat-num" id="statFollowers">-</span><span class="stat-label">followers</span></div>
+          <div class="stat"><span class="stat-num" id="statFriends">-</span><span class="stat-label">friends</span></div>
+          <div class="stat"><span class="stat-num" id="statFollowing">-</span><span class="stat-label">following</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span id="uptime">session 00:00:00</span>
+  </footer>
+
+</div>
+
+<script src="js/starfield.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

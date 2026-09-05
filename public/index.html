@@ -37,27 +37,18 @@
     <div class="date" id="date">loading date</div>
   </section>
 
-  <!-- bottom-right: roblox -->
-  <section class="corner bottom-right" id="robloxPanel">
-    <div class="tag">roblox</div>
-    <div class="roblox-body">
-      <div class="roblox-info">
-        <div class="roblox-name" id="robloxDisplayName">loading...</div>
-        <div class="roblox-username" id="robloxUsername"></div>
-        <div class="roblox-bio" id="robloxBio"></div>
-        <div class="roblox-stats">
-          <div class="stat"><span class="stat-num" id="statFollowers">-</span><span class="stat-label">followers</span></div>
-          <div class="stat"><span class="stat-num" id="statFriends">-</span><span class="stat-label">friends</span></div>
-          <div class="stat"><span class="stat-num" id="statFollowing">-</span><span class="stat-label">following</span></div>
-        </div>
+  <!-- bottom-right: stock ticker -->
+  <section class="corner bottom-right" id="stockPanel">
+    <div class="tag" id="stockSymbol">stock</div>
+    <div class="stock-top">
+      <div class="stock-price" id="stockPrice">--.--</div>
+      <div class="stock-change" id="stockChange">
+        <span class="stock-arrow" id="stockArrow">–</span>
+        <span id="stockChangeText">--</span>
       </div>
-      <img id="robloxAvatar" class="roblox-avatar" src="" alt="roblox avatar">
     </div>
+    <canvas id="stockSparkline" class="sparkline"></canvas>
   </section>
-
-  <footer class="uptime-tag">
-    <span id="uptime">session 00:00:00</span>
-  </footer>
 
 </div>
 

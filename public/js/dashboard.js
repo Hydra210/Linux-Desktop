@@ -18,18 +18,6 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ---------- session uptime ----------
-const startTime = Date.now();
-function updateUptime() {
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
-  const h = Math.floor(elapsed / 3600);
-  const m = Math.floor((elapsed % 3600) / 60);
-  const s = elapsed % 60;
-  document.getElementById('uptime').textContent =
-    'session ' + pad(h) + ':' + pad(m) + ':' + pad(s);
-}
-setInterval(updateUptime, 1000);
-
 // ---------- config (name / location) ----------
 fetch('/api/config')
   .then(r => r.json())
@@ -67,23 +55,139 @@ function loadWeather() {
 loadWeather();
 setInterval(loadWeather, 10 * 60 * 1000); // refresh every 10 min
 
-// ---------- roblox profile ----------
-function loadRoblox() {
-  fetch('/api/roblox')
+// ---------- stock ticker ----------
+const SPARK_POINTS = 48;       // fixed point count so old/new series always line up for animation
+const SPARK_ANIM_MS = 700;     // how long the line takes to glide to new data
+
+const sparkCanvas = document.getElementById('stockSparkline');
+const sparkCtx = sparkCanvas.getContext('2d');
+
+let currentSpark = null;   // points currently being drawn (interpolated during animation)
+let sparkFrom = null;      // animation start points
+let sparkTo = null;        // animation target points
+let sparkAnimStart = 0;
+let sparkColor = '#3ddc84';
+
+function resizeSparkCanvas() {
+  sparkCanvas.width = sparkCanvas.clientWidth * devicePixelRatio;
+  sparkCanvas.height = sparkCanvas.clientHeight * devicePixelRatio;
+}
+window.addEventListener('resize', resizeSparkCanvas);
+resizeSparkCanvas();
+
+// resample any-length series to a fixed number of points via linear interpolation,
+// so the sparkline always has a consistent shape to animate between updates
+function resample(series, count) {
+  if (series.length === count) return series.slice();
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    const pos = (i / (count - 1)) * (series.length - 1);
+    const lo = Math.floor(pos);
+    const hi = Math.min(series.length - 1, Math.ceil(pos));
+    const frac = pos - lo;
+    result.push(series[lo] + (series[hi] - series[lo]) * frac);
+  }
+  return result;
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function drawSpark(points) {
+  const w = sparkCanvas.width;
+  const h = sparkCanvas.height;
+  sparkCtx.clearRect(0, 0, w, h);
+
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = (max - min) || 1;
+  const pad = h * 0.12;
+
+  sparkCtx.beginPath();
+  points.forEach((val, i) => {
+    const x = (i / (points.length - 1)) * w;
+    const y = h - pad - ((val - min) / range) * (h - pad * 2);
+    if (i === 0) sparkCtx.moveTo(x, y);
+    else sparkCtx.lineTo(x, y);
+  });
+
+  sparkCtx.strokeStyle = sparkColor;
+  sparkCtx.lineWidth = 2 * devicePixelRatio;
+  sparkCtx.lineJoin = 'round';
+  sparkCtx.lineCap = 'round';
+  sparkCtx.shadowColor = sparkColor;
+  sparkCtx.shadowBlur = 6;
+  sparkCtx.stroke();
+
+  // soft fill under the line
+  const lastX = w;
+  const lastPoint = points[points.length - 1];
+  const lastY = h - pad - ((lastPoint - min) / range) * (h - pad * 2);
+  sparkCtx.lineTo(lastX, h);
+  sparkCtx.lineTo(0, h);
+  sparkCtx.closePath();
+  sparkCtx.shadowBlur = 0;
+  const gradient = sparkCtx.createLinearGradient(0, 0, 0, h);
+  gradient.addColorStop(0, sparkColor + '33');
+  gradient.addColorStop(1, sparkColor + '00');
+  sparkCtx.fillStyle = gradient;
+  sparkCtx.fill();
+}
+
+function animateSpark(timestamp) {
+  if (!sparkAnimStart) sparkAnimStart = timestamp;
+  const elapsed = timestamp - sparkAnimStart;
+  const t = Math.min(1, elapsed / SPARK_ANIM_MS);
+  const eased = easeInOutCubic(t);
+
+  currentSpark = sparkFrom.map((v, i) => v + (sparkTo[i] - v) * eased);
+  drawSpark(currentSpark);
+
+  if (t < 1) {
+    requestAnimationFrame(animateSpark);
+  } else {
+    currentSpark = sparkTo;
+  }
+}
+
+function updateSparkline(newSeries) {
+  const resampled = resample(newSeries, SPARK_POINTS);
+  if (!currentSpark) {
+    currentSpark = resampled;
+    drawSpark(currentSpark);
+    return;
+  }
+  sparkFrom = currentSpark;
+  sparkTo = resampled;
+  sparkAnimStart = 0;
+  requestAnimationFrame(animateSpark);
+}
+
+function loadStock() {
+  fetch('/api/stock')
     .then(r => r.json())
     .then(d => {
       if (d.error) throw new Error(d.error);
-      document.getElementById('robloxAvatar').src = d.avatarUrl || '';
-      document.getElementById('robloxDisplayName').textContent = d.displayName;
-      document.getElementById('robloxUsername').textContent = '@' + d.username;
-      document.getElementById('robloxBio').textContent = d.bio || 'no bio set.';
-      document.getElementById('statFollowers').textContent = d.followerCount;
-      document.getElementById('statFriends').textContent = d.friendCount;
-      document.getElementById('statFollowing').textContent = d.followingCount;
+
+      document.getElementById('stockSymbol').textContent = d.symbol.toLowerCase() + ' stock';
+      document.getElementById('stockPrice').textContent = `$${d.price.toFixed(2)}`;
+
+      const changeEl = document.getElementById('stockChange');
+      const arrowEl = document.getElementById('stockArrow');
+      const textEl = document.getElementById('stockChangeText');
+
+      changeEl.classList.remove('up', 'down');
+      changeEl.classList.add(d.isUp ? 'up' : 'down');
+      arrowEl.textContent = d.isUp ? '▲' : '▼';
+      textEl.textContent = `${d.isUp ? '+' : ''}${d.change.toFixed(2)} (${d.isUp ? '+' : ''}${d.percentChange.toFixed(2)}%)`;
+
+      sparkColor = d.isUp ? '#3ddc84' : '#ff5a5a';
+      updateSparkline(d.series);
     })
     .catch(() => {
-      document.getElementById('robloxDisplayName').textContent = 'profile unavailable';
+      document.getElementById('stockPrice').textContent = 'n/a';
     });
 }
-loadRoblox();
-setInterval(loadRoblox, 5 * 60 * 1000); // refresh every 5 min
+loadStock();
+setInterval(loadStock, 60 * 1000); // stock endpoint itself caches for 60s server-side

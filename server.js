@@ -8,16 +8,16 @@ const PORT = process.env.PORT || 3000;
 
 const NAME = process.env.DASHBOARD_NAME || 'Patrick';
 const LOCATION = process.env.LOCATION || 'Denton, NC';
-const ROBLOX_USER = process.env.ROBLOX_USER || 'Nexesmere';
+const STOCK_SYMBOL = process.env.STOCK_SYMBOL || 'RBLX';
 
 const splashes = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'splashes.json'), 'utf8'));
 
 // ---------- simple in-memory caches ----------
 let weatherCache = { data: null, fetchedAt: 0 };
-let robloxCache = { data: null, fetchedAt: 0 };
+let stockCache = { data: null, fetchedAt: 0 };
 
 const WEATHER_TTL_MS = 10 * 60 * 1000; // 10 min
-const ROBLOX_TTL_MS = 5 * 60 * 1000;   // 5 min
+const STOCK_TTL_MS = 60 * 1000;        // 1 min — stock price actually moves
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -64,59 +64,47 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
-app.get('/api/roblox', async (req, res) => {
+app.get('/api/stock', async (req, res) => {
   const now = Date.now();
-  if (robloxCache.data && (now - robloxCache.fetchedAt) < ROBLOX_TTL_MS) {
-    return res.json(robloxCache.data);
+  if (stockCache.data && (now - stockCache.fetchedAt) < STOCK_TTL_MS) {
+    return res.json(stockCache.data);
   }
 
   try {
-    let userId = ROBLOX_USER;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${STOCK_SYMBOL}?range=1d&interval=5m`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (dashboard widget)' },
+    });
+    if (!response.ok) throw new Error(`yahoo finance responded ${response.status}`);
+    const raw = await response.json();
 
-    // resolve username -> numeric id if a username was given instead of an id
-    if (!/^\d+$/.test(ROBLOX_USER)) {
-      const idRes = await fetch('https://users.roblox.com/v1/usernames/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usernames: [ROBLOX_USER], excludeBannedUsers: false }),
-      });
-      const idData = await idRes.json();
-      if (!idData.data || !idData.data.length) throw new Error('username not found');
-      userId = idData.data[0].id;
-    }
+    const result = raw.chart.result[0];
+    const meta = result.meta;
+    const closes = (result.indicators.quote[0].close || []).filter(v => v !== null && v !== undefined);
 
-    const [userRes, avatarRes, friendsRes, followersRes, followingRes] = await Promise.all([
-      fetch(`https://users.roblox.com/v1/users/${userId}`),
-      fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`),
-      fetch(`https://friends.roblox.com/v1/users/${userId}/friends/count`),
-      fetch(`https://friends.roblox.com/v1/users/${userId}/followers/count`),
-      fetch(`https://friends.roblox.com/v1/users/${userId}/followings/count`),
-    ]);
-
-    const [user, avatar, friends, followers, following] = await Promise.all([
-      userRes.json(), avatarRes.json(), friendsRes.json(), followersRes.json(), followingRes.json(),
-    ]);
+    const price = meta.regularMarketPrice;
+    const prevClose = meta.chartPreviousClose ?? meta.previousClose;
+    const change = price - prevClose;
+    const percentChange = (change / prevClose) * 100;
 
     const payload = {
-      userId,
-      displayName: user.displayName,
-      username: user.name,
-      bio: user.description || '',
-      avatarUrl: (avatar.data && avatar.data[0] && avatar.data[0].imageUrl) || null,
-      friendCount: friends.count,
-      followerCount: followers.count,
-      followingCount: following.count,
-      profileUrl: `https://www.roblox.com/users/${userId}/profile`,
+      symbol: STOCK_SYMBOL,
+      price: Number(price.toFixed(2)),
+      change: Number(change.toFixed(2)),
+      percentChange: Number(percentChange.toFixed(2)),
+      isUp: change >= 0,
+      series: closes.length ? closes : [prevClose, price],
+      marketState: meta.marketState || 'UNKNOWN',
     };
 
-    robloxCache = { data: payload, fetchedAt: now };
+    stockCache = { data: payload, fetchedAt: now };
     res.json(payload);
   } catch (err) {
-    console.error('[roblox] fetch failed:', err.message);
-    if (robloxCache.data) {
-      return res.json(robloxCache.data);
+    console.error('[stock] fetch failed:', err.message);
+    if (stockCache.data) {
+      return res.json(stockCache.data);
     }
-    res.status(502).json({ error: 'roblox profile unavailable' });
+    res.status(502).json({ error: 'stock data unavailable' });
   }
 });
 

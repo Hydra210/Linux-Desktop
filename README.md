@@ -19,7 +19,7 @@ Environment). For local testing, copy `.env.example` to `.env` and edit it.
 |---|---|---|
 | `DASHBOARD_NAME` | `Patrick` | Name shown in "Welcome back, ___" |
 | `LOCATION` | `Denton, NC` | Location used for the weather lookup |
-| `ROBLOX_USER` | `Nexesmere` | Roblox username *or* numeric user ID to preview |
+| `STOCK_SYMBOL` | `RBLX` | Ticker symbol shown on the stock panel |
 
 ## Running locally
 
@@ -46,10 +46,9 @@ Then open `http://localhost:3000`.
 
 - Weather comes from `wttr.in` (no API key needed) — cached server-side for
   10 minutes so it's not re-fetched on every page load.
-- Roblox profile data (avatar, bio, follower/friend/following counts) is
-  pulled from Roblox's public API through the backend, cached for 5 minutes.
-  Browsers can't call Roblox's API directly (no CORS), which is why this
-  needs a small server instead of being pure static HTML.
+- Stock data comes from Yahoo Finance's public chart endpoint (no API key),
+  cached server-side for 60 seconds. The sparkline redraws with a smooth
+  0.7s glide animation whenever new data comes in rather than snapping.
 - Render's free tier spins down after inactivity — the first load after
   it's been idle can take ~30-50 seconds to wake back up. If that's
   annoying for a wallpaper that's supposed to always be live, look at

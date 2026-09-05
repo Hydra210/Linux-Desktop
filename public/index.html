@@ -11,35 +11,36 @@
 
 <div class="wrap">
 
-  <header class="greeting">
-    <img id="pfp" class="pfp" src="icons/pfp.png" alt="profile picture">
-    <div class="greeting-text">
-      <h1 id="welcome">Welcome back, Patrick</h1>
-      <p id="splash" class="splash">loading splash text...</p>
+  <!-- top-left: greeting -->
+  <header class="corner top-left">
+    <div class="greeting">
+      <img id="pfp" class="pfp" src="icons/pfp.png" alt="profile picture">
+      <div class="greeting-text">
+        <h1 id="welcome">Welcome back, Patrick</h1>
+        <p id="splash" class="splash">loading splash text...</p>
+      </div>
     </div>
   </header>
 
-  <section class="info-row">
-
-    <div class="panel">
-      <div class="panel-label">local time</div>
-      <div class="clock" id="clock">--:--:--</div>
-      <div class="date" id="date">loading date</div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-label" id="wxLocation">weather</div>
-      <div class="wx-temp" id="wxTemp">--°</div>
-      <div class="wx-desc" id="wxDesc">fetching...</div>
-      <div class="wx-sub" id="wxSub"></div>
-    </div>
-
+  <!-- top-right: weather -->
+  <section class="corner top-right">
+    <div class="tag" id="wxLocation">weather</div>
+    <div class="wx-temp" id="wxTemp">--°</div>
+    <div class="wx-desc" id="wxDesc">fetching...</div>
+    <div class="hairline"></div>
+    <div class="wx-sub" id="wxSub"></div>
   </section>
 
-  <section class="panel roblox-panel" id="robloxPanel">
-    <div class="panel-label">roblox profile</div>
+  <!-- bottom-left: clock -->
+  <section class="corner bottom-left">
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="date" id="date">loading date</div>
+  </section>
+
+  <!-- bottom-right: roblox -->
+  <section class="corner bottom-right" id="robloxPanel">
+    <div class="tag">roblox</div>
     <div class="roblox-body">
-      <img id="robloxAvatar" class="roblox-avatar" src="" alt="roblox avatar">
       <div class="roblox-info">
         <div class="roblox-name" id="robloxDisplayName">loading...</div>
         <div class="roblox-username" id="robloxUsername"></div>
@@ -50,10 +51,11 @@
           <div class="stat"><span class="stat-num" id="statFollowing">-</span><span class="stat-label">following</span></div>
         </div>
       </div>
+      <img id="robloxAvatar" class="roblox-avatar" src="" alt="roblox avatar">
     </div>
   </section>
 
-  <footer class="footer">
+  <footer class="uptime-tag">
     <span id="uptime">session 00:00:00</span>
   </footer>
 

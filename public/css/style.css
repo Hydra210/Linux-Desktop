@@ -22,120 +22,144 @@ html, body {
 }
 
 .wrap {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 1;
-  width: 100%;
-  height: 100%;
-  padding: 56px 64px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 32px;
+  padding: 60px 72px;
+  pointer-events: none; /* wallpaper, not a UI — nothing here should feel clickable */
 }
 
-/* ---------- greeting ---------- */
+.corner {
+  position: absolute;
+}
+
+/* shared bits */
+.tag {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 10px;
+}
+
+.hairline {
+  width: 100%;
+  max-width: 220px;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255,255,255,0.35), rgba(255,255,255,0));
+  margin: 12px 0;
+  margin-left: auto;
+}
+
+/* ---------- top-left: greeting ---------- */
+.top-left {
+  top: 60px;
+  left: 72px;
+}
+
 .greeting {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 
 .pfp {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 .greeting-text h1 {
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 600;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
+  text-shadow: 0 0 24px rgba(255,255,255,0.25);
 }
 
 .splash {
   margin-top: 4px;
-  font-size: 14px;
+  font-size: 13px;
   font-style: italic;
-  color: rgba(255,255,255,0.55);
-}
-
-/* ---------- shared panel look ---------- */
-.panel {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  padding: 20px 24px;
-  backdrop-filter: blur(2px);
-}
-
-.panel-label {
-  font-size: 12px;
-  text-transform: lowercase;
   color: rgba(255,255,255,0.45);
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
 }
 
-/* ---------- info row: clock + weather ---------- */
-.info-row {
-  display: flex;
-  gap: 24px;
-}
-
-.info-row .panel {
-  flex: 1;
-}
-
-.clock {
-  font-size: 48px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.date {
-  margin-top: 6px;
-  font-size: 14px;
-  color: rgba(255,255,255,0.55);
+/* ---------- top-right: weather ---------- */
+.top-right {
+  top: 60px;
+  right: 72px;
+  text-align: right;
+  max-width: 260px;
 }
 
 .wx-temp {
-  font-size: 40px;
-  font-weight: 600;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(255,255,255,0.3);
 }
 
 .wx-desc {
-  margin-top: 4px;
-  font-size: 14px;
+  margin-top: 6px;
+  font-size: 15px;
   color: rgba(255,255,255,0.6);
   text-transform: lowercase;
 }
 
 .wx-sub {
-  margin-top: 8px;
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(255,255,255,0.35);
+  letter-spacing: 0.3px;
 }
 
-/* ---------- roblox panel ---------- */
+/* ---------- bottom-left: clock ---------- */
+.bottom-left {
+  bottom: 60px;
+  left: 72px;
+}
+
+.clock {
+  font-size: 108px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-shadow: 0 0 50px rgba(255,255,255,0.35);
+}
+
+.date {
+  margin-top: 10px;
+  font-size: 15px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.5px;
+}
+
+/* ---------- bottom-right: roblox ---------- */
+.bottom-right {
+  bottom: 60px;
+  right: 72px;
+  text-align: right;
+  max-width: 340px;
+}
+
 .roblox-body {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 18px;
 }
 
 .roblox-avatar {
-  width: 84px;
-  height: 84px;
-  border-radius: 10px;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
   object-fit: cover;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
   background: rgba(255,255,255,0.05);
+  flex-shrink: 0;
 }
 
 .roblox-info {
-  flex: 1;
   min-width: 0;
 }
 
@@ -145,16 +169,17 @@ html, body {
 }
 
 .roblox-username {
-  font-size: 13px;
-  color: rgba(255,255,255,0.45);
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
   margin-top: 2px;
 }
 
 .roblox-bio {
-  font-size: 13px;
-  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
   margin-top: 8px;
-  max-width: 60ch;
+  max-width: 260px;
+  margin-left: auto;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -164,30 +189,37 @@ html, body {
 
 .roblox-stats {
   display: flex;
-  gap: 28px;
+  justify-content: flex-end;
+  gap: 22px;
   margin-top: 14px;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
 }
 
 .stat-num {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
 }
 
 .stat-label {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
   text-transform: lowercase;
   margin-top: 2px;
 }
 
-/* ---------- footer ---------- */
-.footer {
-  font-size: 11px;
-  color: rgba(255,255,255,0.3);
-  letter-spacing: 0.5px;
+/* ---------- uptime tag ---------- */
+.uptime-tag {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
 }
